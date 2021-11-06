@@ -22,4 +22,9 @@ class Financing extends Model
         'financing_start_date',
         'financing_due_date'
     ];
+
+    public function returnSchedules()
+    {
+        return $this->hasMany(ReturnSchedule::class);
+    }
 }
