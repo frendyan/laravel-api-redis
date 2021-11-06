@@ -55,9 +55,9 @@ class FinancingController extends Controller
             //generate unique financing id
             $loop = true;
             while ($loop) {
-                $financing_id = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 1, 5);
-                $result = Financing::where('financing_id', $financing_id)->get();
-                if (isEmpty($result)) {
+                $unique_id = substr(str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ'), 1, 5);
+                $result = Financing::where('unique_id', $unique_id)->count();
+                if ($result < 1) {
                     $loop = false;
                 }
             }
@@ -71,10 +71,10 @@ class FinancingController extends Controller
 
             //start database transactions
             $finance = new Financing;
-            DB::transaction(function () use ($request, $financing_id, $finance, $arr) {
+            DB::transaction(function () use ($request, $unique_id, $finance, $arr) {
 
                 //Save Finance
-                $finance->financing_id = $financing_id;
+                $finance->unique_id = $unique_id;
                 $finance->financing_amount = $request->financing_amount;
                 $finance->yearly_margin = $request->yearly_margin;
                 $finance->tenor = $request->tenor;
@@ -174,19 +174,46 @@ class FinancingController extends Controller
 
     public function show($id)
     {
+        /*
+            Without REDIS
+        */
+        // $dataFinancing = Financing::find($id);
+        // if (is_null($dataFinancing)) {
+        //     return response()->json('Data not found', 404);
+        // }
+
+        // $dataSchedule = Financing::find($id)->returnSchedules;
+
+        // return response()->json(
+        //     [
+        //         'status' => 'success',
+        //         'message' => 'Financing Detail DB fetch success',
+        //         'data' => $dataFinancing,
+        //         'schedule' => $dataSchedule,
+        //     ],
+        //     200
+        // );
+
+
+        /*
+            With REDIS
+        */
+
         try {
 
             $cachedData = Redis::get('data_' . $id);
 
-
             if (isset($cachedData)) {
+                $cachedDataSchedule = Redis::get('schedule_' . $id);
                 $data = json_decode($cachedData, FALSE);
+                $dataSchedule = json_decode($cachedDataSchedule, FALSE);
 
                 return response()->json(
                     [
                         'status' => 'success',
                         'message' => 'Financing Detail REDIS fetch success',
                         'data' => $data,
+                        'schedule' => $dataSchedule
                     ],
                     201
                 );
@@ -196,14 +223,16 @@ class FinancingController extends Controller
                     return response()->json('Data not found', 404);
                 }
 
-                $data = Financing::find($id)->returnSchedules();
+                $dataSchedule = Financing::find($id)->returnSchedules;
                 Redis::set('data_' . $id, $data);
+                Redis::set('schedule_' . $id, $dataSchedule);
 
                 return response()->json(
                     [
                         'status' => 'success',
                         'message' => 'Financing Detail DB fetch success',
                         'data' => $data,
+                        'schedule' => $dataSchedule
                     ],
                     200
                 );

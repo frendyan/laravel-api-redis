@@ -15,7 +15,7 @@ class CreateFinancingsTable extends Migration
     {
         Schema::create('financings', function (Blueprint $table) {
             $table->id();
-            $table->string('financing_id', 5);
+            $table->string('unique_id', 5);
             $table->integer('financing_amount');
             $table->integer('yearly_margin');
             $table->integer('tenor');

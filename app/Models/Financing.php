@@ -13,7 +13,7 @@ class Financing extends Model
     protected $guarded = [];
 
     protected $fillable = [
-        'financing_id',
+        'unique_id',
         'financing_amount',
         'yearly_margin',
         'tenor',
