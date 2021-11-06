@@ -177,68 +177,24 @@ class FinancingController extends Controller
         /*
             Without REDIS
         */
-        // $dataFinancing = Financing::find($id);
-        // if (is_null($dataFinancing)) {
-        //     return response()->json('Data not found', 404);
-        // }
-
-        // $dataSchedule = Financing::find($id)->returnSchedules;
-
-        // return response()->json(
-        //     [
-        //         'status' => 'success',
-        //         'message' => 'Financing Detail DB fetch success',
-        //         'data' => $dataFinancing,
-        //         'schedule' => $dataSchedule,
-        //     ],
-        //     200
-        // );
-
-
-        /*
-            With REDIS
-        */
-
         try {
-
-            $cachedData = Redis::get('data_' . $id);
-
-            if (isset($cachedData)) {
-                $cachedDataSchedule = Redis::get('schedule_' . $id);
-                $data = json_decode($cachedData, FALSE);
-                $dataSchedule = json_decode($cachedDataSchedule, FALSE);
-
-                return response()->json(
-                    [
-                        'status' => 'success',
-                        'message' => 'Financing Detail REDIS fetch success',
-                        'data' => $data,
-                        'schedule' => $dataSchedule
-                    ],
-                    201
-                );
-            } else {
-                $data = Financing::find($id);
-                if (is_null($data)) {
-                    return response()->json('Data not found', 404);
-                }
-
-                $dataSchedule = Financing::find($id)->returnSchedules;
-                Redis::set('data_' . $id, $data);
-                Redis::set('schedule_' . $id, $dataSchedule);
-
-                return response()->json(
-                    [
-                        'status' => 'success',
-                        'message' => 'Financing Detail DB fetch success',
-                        'data' => $data,
-                        'schedule' => $dataSchedule
-                    ],
-                    200
-                );
+            $dataFinancing = Financing::find($id);
+            if (is_null($dataFinancing)) {
+                return response()->json('Data not found', 404);
             }
-        } catch (\Exception $e) {
 
+            $dataSchedule = Financing::find($id)->returnSchedules;
+
+            return response()->json(
+                [
+                    'status' => 'success',
+                    'message' => 'Financing Detail DB fetch success',
+                    'data' => $dataFinancing,
+                    'schedule' => $dataSchedule,
+                ],
+                200
+            );
+        } catch (\Exception $e) {
             return response()->json(
                 [
                     'status' => 'failed',
@@ -247,5 +203,60 @@ class FinancingController extends Controller
                 500
             );
         }
+
+
+
+        /*
+            With REDIS
+        */
+
+        // try {
+
+        //     $cachedData = Redis::get('data_' . $id);
+
+        //     if (isset($cachedData)) {
+        //         $cachedDataSchedule = Redis::get('schedule_' . $id);
+        //         $data = json_decode($cachedData, FALSE);
+        //         $dataSchedule = json_decode($cachedDataSchedule, FALSE);
+
+        //         return response()->json(
+        //             [
+        //                 'status' => 'success',
+        //                 'message' => 'Financing Detail REDIS fetch success',
+        //                 'data' => $data,
+        //                 'schedule' => $dataSchedule
+        //             ],
+        //             201
+        //         );
+        //     } else {
+        //         $data = Financing::find($id);
+        //         if (is_null($data)) {
+        //             return response()->json('Data not found', 404);
+        //         }
+
+        //         $dataSchedule = Financing::find($id)->returnSchedules;
+        //         Redis::set('data_' . $id, $data);
+        //         Redis::set('schedule_' . $id, $dataSchedule);
+
+        //         return response()->json(
+        //             [
+        //                 'status' => 'success',
+        //                 'message' => 'Financing Detail DB fetch success',
+        //                 'data' => $data,
+        //                 'schedule' => $dataSchedule
+        //             ],
+        //             200
+        //         );
+        //     }
+        // } catch (\Exception $e) {
+
+        //     return response()->json(
+        //         [
+        //             'status' => 'failed',
+        //             'message' => $e->getMessage()
+        //         ],
+        //         500
+        //     );
+        // }
     }
 }
